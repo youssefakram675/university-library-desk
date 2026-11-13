@@ -12,14 +12,47 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (HTML, CSS, client-side JS) from the root directory
 app.use(express.static(path.join(__dirname)));
 
-// In-memory data store mimicking your SQLite tables for full interactivity on Vercel
+// Robust in-memory data store supporting both camelCase and snake_case column names
 let memoryLoans = [
-    { id: 1, bookTitle: "Introduction to Algorithms", borrower: "Youssef Akram", status: "Active", dueDate: "2026-06-01" },
-    { id: 2, bookTitle: "Database System Concepts", borrower: "Ahmed Ali", status: "Active", dueDate: "2026-06-05" },
-    { id: 3, bookTitle: "Operating System Concepts", borrower: "Mohamed Hassan", status: "Overdue", dueDate: "2026-05-10" }
+    { 
+        id: 1, 
+        studentId: "STU-12345", 
+        student_id: "STU-12345",
+        itemTitle: "Introduction to Algorithms", 
+        item_title: "Introduction to Algorithms", 
+        bookTitle: "Introduction to Algorithms",
+        type: "Book", 
+        dueDate: "2026-06-01", 
+        due_date: "2026-06-01", 
+        status: "Active" 
+    },
+    { 
+        id: 2, 
+        studentId: "STU-67890", 
+        student_id: "STU-67890",
+        itemTitle: "Database System Concepts", 
+        item_title: "Database System Concepts", 
+        bookTitle: "Database System Concepts",
+        type: "Book", 
+        dueDate: "2026-06-05", 
+        due_date: "2026-06-05", 
+        status: "Active" 
+    },
+    { 
+        id: 3, 
+        studentId: "STU-54321", 
+        student_id: "STU-54321",
+        itemTitle: "Operating System Concepts", 
+        item_title: "Operating System Concepts", 
+        bookTitle: "Operating System Concepts",
+        type: "IT Equipment", 
+        dueDate: "2026-05-10", 
+        due_date: "2026-05-10", 
+        status: "Overdue" 
+    }
 ];
 
-// Create a robust mock database object supporting all queries
+// Create a robust mock database object supporting all SQLite methods
 const mockDb = {
     all(sql, params, callback) {
         if (typeof params === 'function') {
@@ -46,16 +79,22 @@ const mockDb = {
         }
         console.log("Executing SQL WRITE:", sql, params);
         const lowerSql = sql.toLowerCase();
+        
         if (lowerSql.includes('insert')) {
             const newLoan = {
                 id: memoryLoans.length + 1,
-                bookTitle: params && params[0] ? params[0] : "New Registered Book",
-                borrower: params && params[1] ? params[1] : "Student User",
-                status: "Active",
-                dueDate: "2026-07-01"
+                studentId: params && params[0] ? params[0] : "STU-83838",
+                student_id: params && params[0] ? params[0] : "STU-83838",
+                itemTitle: params && params[1] ? params[1] : "Anker USB-C Adapter",
+                item_title: params && params[1] ? params[1] : "Anker USB-C Adapter",
+                type: params && params[2] ? params[2] : "IT / Media Equipment",
+                dueDate: params && params[3] ? params[3] : "2026-11-27",
+                due_date: params && params[3] ? params[3] : "2026-11-27",
+                status: "Active"
             };
             memoryLoans.push(newLoan);
         }
+        
         if (callback) callback.call({ lastID: memoryLoans.length, changes: 1 }, null);
         return mockDb;
     },
@@ -66,10 +105,16 @@ const mockDb = {
     serialize(callback) {
         if (callback) callback();
         return mockDb;
+    },
+    prepare(sql, params, callback) {
+        return {
+            run: function(p, cb) { if (cb) cb(null); return this; },
+            finalize: function(cb) { if (cb) cb(null); }
+        };
     }
 };
 
-// INTERCEPT sqlite3.Database so app.js connects to mockDb instead of failing on Vercel's disk
+// Intercept sqlite3.Database so app.js uses mockDb safely on Vercel
 sqlite3.Database = function(file, mode, callback) {
     if (typeof mode === 'function') {
         callback = mode;
@@ -91,7 +136,7 @@ try {
         app.use(mainApp);
     }
 } catch (e) {
-    console.log('App loaded with intercepted database.');
+    console.log('App loaded successfully with mock database.');
 }
 
 // Start server (fallback for local testing)
