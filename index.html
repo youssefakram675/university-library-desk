@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Library Loan & Fines Desk</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <header>
+        <div class="header-container">
+            <h1>University Library Desk</h1>
+            <nav aria-label="Main Navigation">
+                <ul>
+                    <li><a href="#dashboard-section" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#loans-section" class="nav-link">Active Loans</a></li>
+                    <li><a href="#new-loan-section" class="nav-link">Register Loan</a></li>
+                    <li><button id="theme-toggle-btn" class="secondary-btn" aria-label="Toggle dark mode">🌙 Dark Mode</button></li>
+                    <li><button id="logout-btn" class="secondary-btn" style="display: none;" aria-label="Sign out of staff session">Sign Out</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Sign-In Screen View -->
+        <section id="auth-section" class="view active-view" aria-labelledby="auth-heading">
+            <div class="auth-card">
+                <h2 id="auth-heading">Staff Sign-In</h2>
+                <p>Please enter your library staff credentials to access the desk system.</p>
+                
+                <form id="login-form" novalidate>
+                    <div class="form-group">
+                        <label for="username">Staff Username <span aria-hidden="true">*</span></label>
+                        <input type="text" id="username" name="username" required aria-describedby="username-error">
+                        <span id="username-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password <span aria-hidden="true">*</span></label>
+                        <input type="password" id="password" name="password" required aria-describedby="password-error">
+                        <span id="password-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <button type="submit" class="primary-btn">Sign In</button>
+                    <div id="login-status" class="status-message" aria-live="polite"></div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard View -->
+        <section id="dashboard-section" class="view" aria-labelledby="dashboard-heading" hidden>
+            <div class="dashboard-header">
+                <h2 id="dashboard-heading" tabindex="-1">Library Desk Dashboard</h2>
+                <p>Manage loans, register items, and track register statuses efficiently.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Active Loans</h3>
+                    <p class="stat-number" id="stat-active-loans">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Overdue Items</h3>
+                    <p class="stat-number" id="stat-overdue">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Fines ($5/day)</h3>
+                    <p class="stat-number" id="stat-fines">$0.00</p>
+                    <div id="fine-breakdown-container"></div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <!-- Data Entry Form Panel -->
+                <div class="panel" id="new-loan-section">
+                    <h3>Register New Loan or Item</h3>
+                    <form id="loan-form" novalidate>
+                        <div class="form-group">
+                            <label for="student-id">Student ID <span aria-hidden="true">*</span></label>
+                            <input type="text" id="student-id" name="studentId" required placeholder="e.g. STU-94821" aria-describedby="student-id-error">
+                            <span id="student-id-error" class="error-message" aria-live="polite"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="item-type">Item Category <span aria-hidden="true">*</span></label>
+                            <select id="item-type" name="itemType" required aria-describedby="item-type-error">
+                                <option value="">-- Select Category --</option>
+                                <option value="Book">Library Book</option>
+                                <option value="Equipment">IT / Media Equipment</option>
+                            </select>
+                            <span id="item-type-error" class="error-message" aria-live="polite"></span>
+                        </div>
+
+                        <!-- Dynamic Item Input Container -->
+                        <div class="form-group">
+                            <label for="dynamic-item-input">Item Selection <span aria-hidden="true">*</span></label>
+                            <div id="item-input-container">
+                                <input type="text" id="dynamic-item-input" placeholder="Select category first..." disabled>
+                            </div>
+                            <span id="item-title-error" class="error-message" aria-live="polite"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="due-date">Loan Due Date (Max: 31/01/2027, Past dates allowed as Overdue) <span aria-hidden="true">*</span></label>
+                            <input type="date" id="due-date" name="dueDate" max="2027-01-31" required aria-describedby="due-date-error">
+                            <span id="due-date-error" class="error-message" aria-live="polite"></span>
+                        </div>
+
+                        <button type="submit" class="primary-btn">Register Loan</button>
+                    </form>
+                </div>
+
+                <!-- Data Table Panel -->
+                <div class="panel" id="loans-section">
+                    <div class="table-header-controls">
+                        <h3>Loans Register</h3>
+                        <div class="search-filter-group">
+                            <label for="table-search" class="sr-only">Search loans</label>
+                            <input type="text" id="table-search" placeholder="Search ID or item...">
+                        </div>
+                    </div>
+
+                    <div class="filter-tabs" role="tablist" aria-label="Loan Status Filters">
+                        <button role="tab" aria-selected="true" class="filter-tab active" data-filter="all">All</button>
+                        <button role="tab" aria-selected="false" class="filter-tab" data-filter="active">Active</button>
+                        <button role="tab" aria-selected="false" class="filter-tab" data-filter="overdue">Overdue</button>
+                        <button role="tab" aria-selected="false" class="filter-tab" data-filter="returned">Returned</button>
+                    </div>
+
+                    <div id="table-live-count" class="sr-only" aria-live="polite"></div>
+
+                    <div class="table-responsive">
+                        <table aria-label="Library Loans Table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Student ID</th>
+                                    <th scope="col">Item Title</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Due Date</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loans-table-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-container" id="pagination-controls" hidden>
+                        <button id="prev-page-btn" class="secondary-btn" disabled>&larr; Previous</button>
+                        <span id="page-info" style="font-size: 0.9rem; font-weight: 500;">Page 1 of 1</span>
+                        <button id="next-page-btn" class="secondary-btn" disabled>Next &rarr;</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Status Confirmation Modal -->
+    <div id="status-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" hidden style="display: none;">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-desc">Are you sure you want to update this loan record?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="secondary-btn">Cancel</button>
+                <button id="modal-confirm-btn" class="primary-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 University Library Services &bull; WCAG 2.1 AA Compliant Records Management</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
