@@ -22,13 +22,23 @@ const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
     }
 });
 
+// Make database accessible globally or pass to app if needed
+app.locals.db = db;
+
 // Explicitly serve index.html at the root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// === YOUR API / ROUTE HANDLERS ===
-// (Make sure your login/data routes query the read-only 'db' instance above)
+// Import your main application routes and logic from app.js
+try {
+    const mainApp = require('./app.js');
+    if (typeof mainApp === 'function') {
+        app.use(mainApp);
+    }
+} catch (e) {
+    console.log('app.js loaded or running independently.');
+}
 
 // Start server (fallback for local testing)
 app.listen(PORT, () => {
