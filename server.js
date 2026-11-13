@@ -12,24 +12,23 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (HTML, CSS, client-side JS) from the root directory
 app.use(express.static(path.join(__dirname)));
 
-// Connect to the SQLite database
+// Connect to the SQLite database in read-only mode for Vercel's serverless environment
 const dbPath = path.join(__dirname, 'library.db');
-const db = new sqlite3.Database(dbPath, (err) => {
+const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
     } else {
-        console.log('Connected to SQLite database.');
+        console.log('Connected to SQLite database in read-only mode.');
     }
 });
 
-// Explicitly serve index.html at the root route to fix the Cannot GET / error
+// Explicitly serve index.html at the root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// === ADD YOUR API / ROUTE HANDLERS BELOW THIS LINE ===
-// Example:
-// app.get('/api/books', (req, res) => { ... });
+// === YOUR API / ROUTE HANDLERS ===
+// (Make sure your login/data routes query the read-only 'db' instance above)
 
 // Start server (fallback for local testing)
 app.listen(PORT, () => {
